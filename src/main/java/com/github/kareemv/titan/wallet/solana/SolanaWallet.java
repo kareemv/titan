@@ -77,11 +77,6 @@ public class SolanaWallet implements Wallet {
     }
   }
 
-  public void updateSplTokenBalances() throws BalanceUpdateException {
-    
-
-  }
-
   public String sendSolTo(String recipientAddress, BigDecimal amount) throws TransactionException {
     try {
       PublicKey senderPublicKey = this.keypair.getPublicKey();
