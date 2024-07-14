@@ -9,12 +9,9 @@ import com.github.kareemv.titan.wallet.exception.BalanceUpdateException;
 import com.github.kareemv.titan.wallet.exception.TransactionException;
 import com.github.kareemv.titan.wallet.exception.WalletException;
 import com.github.kareemv.titan.wallet.solana.encryption.SolanaWalletEncryptor;
-import com.github.kareemv.titan.wallet.token.SplTokenBalance;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import org.sol4k.Keypair;
 import org.sol4k.PublicKey;
 import org.sol4k.Transaction;
@@ -26,7 +23,6 @@ public class SolanaWallet implements Wallet {
   private BigInteger balance; // Represented in lamports
   private final Keypair keypair;
   private static final WalletType walletType = WalletType.SOLANA;
-  private List<SplTokenBalance> splTokenBalances = new ArrayList<>();
 
   private SolanaWallet(String name, Keypair keypair) {
     this.name = name;
@@ -63,10 +59,6 @@ public class SolanaWallet implements Wallet {
   @Override
   public String getDisplayBalanceCurrency() {
     return "SOL";
-  }
-
-  public List<SplTokenBalance> getSplTokenBalances() {
-    return this.splTokenBalances;
   }
 
   public void updateBalance() throws BalanceUpdateException {
