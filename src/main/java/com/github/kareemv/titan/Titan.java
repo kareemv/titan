@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import javax.swing.*;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -31,6 +33,7 @@ public enum Titan {
   public Web3j ethereumClient = Web3j.build(new HttpService("https://ethereum-rpc.publicnode.com"));
   public Connection solanaClient = new Connection(RpcUrl.MAINNNET);
   public final OkHttpClient okHttpClient = new OkHttpClient();
+  private final ExecutorService executorService = Executors.newCachedThreadPool();
   public String password; // set after successful decryption or creation
   public List<EthereumWallet> ethereumWallets = new ArrayList<>();
   public List<SolanaWallet> solanaWallets = new ArrayList<>();
@@ -55,8 +58,9 @@ public enum Titan {
       return;
     }
 
-    updateEthPrice();
-    updateSolPrice();
+    executorService.submit(this::updateEthPrice);
+    executorService.submit(this::updateSolPrice);
+
     mainWindow = new MainWindow();
   }
 
@@ -172,7 +176,7 @@ public enum Titan {
       ethUsdPrice =
           jsonObject.getAsJsonObject("data").getAsJsonObject("rates").get("USD").getAsBigDecimal();
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Unable to fetch ETH price: " + e.getMessage());
     } catch (JsonSyntaxException e) {
       System.err.println("Invalid JSON response for ETH price");
     }
@@ -190,7 +194,7 @@ public enum Titan {
       solUsdPrice =
           jsonObject.getAsJsonObject("data").getAsJsonObject("rates").get("USD").getAsBigDecimal();
     } catch (IOException e) {
-      e.printStackTrace();
+      System.err.println("Unable to fetch SOL price: " + e.getMessage());
     } catch (JsonSyntaxException e) {
       System.err.println("Invalid JSON response for SOL price");
     }
