@@ -53,7 +53,8 @@ public class SolanaWallet implements Wallet {
 
   @Override
   public BigDecimal getDisplayBalance() {
-    return UnitUtils.convertLamportsToSol(this.balance);
+    BigDecimal solBalance = UnitUtils.convertLamportsToSol(this.balance);
+    return solBalance.scale() > 6 ? solBalance.setScale(6, BigDecimal.ROUND_DOWN) : solBalance;
   }
 
   @Override
@@ -61,12 +62,25 @@ public class SolanaWallet implements Wallet {
     return "SOL";
   }
 
+  @Override
+  public BigDecimal getDisplayBalanceUSD() {
+    BigDecimal solBalance = UnitUtils.convertLamportsToSol(this.balance);
+    return solBalance.multiply(Titan.INSTANCE.solUsdPrice);
+  }
+
+  @Override
   public void updateBalance() throws BalanceUpdateException {
     try {
       this.balance = Titan.INSTANCE.solanaClient.getBalance(this.keypair.getPublicKey());
     } catch (Exception e) {
       throw new BalanceUpdateException("Failed to update balance", e);
     }
+  }
+
+  @Override
+  public String sendFundsTo(String recipientAddress, BigDecimal amount)
+      throws TransactionException {
+    return sendSolTo(recipientAddress, amount);
   }
 
   public String sendSolTo(String recipientAddress, BigDecimal amount) throws TransactionException {
@@ -105,18 +119,23 @@ public class SolanaWallet implements Wallet {
       Keypair keypair = Keypair.fromSecretKey(privateKey.getBytes());
       String fileName = IOUtils.SOL_WALLETS_DIRECTORY + File.separator + name + ".json";
       SolanaWalletEncryptor.encryptWalletToFile(keypair, Titan.INSTANCE.password, fileName);
-      return new SolanaWallet(name, keypair);
+      SolanaWallet wallet = new SolanaWallet(name, keypair);
+      wallet.updateBalance();
+      return wallet;
     } catch (Exception e) {
       throw new WalletException("Failed to import Solana wallet: \"" + name + "\"", e);
     }
   }
 
-  public static SolanaWallet loadFromFile(String fileName) throws WalletException {
+  public static SolanaWallet loadFromFile(String fileName, String password) throws WalletException {
     try {
-      return new SolanaWallet(
-          fileName.split("\\.")[0],
-          SolanaWalletEncryptor.decryptWalletFromFile(
-              Titan.INSTANCE.password, IOUtils.SOL_WALLETS_DIRECTORY + File.separator + fileName));
+      SolanaWallet wallet =
+          new SolanaWallet(
+              fileName.split("\\.")[0],
+              SolanaWalletEncryptor.decryptWalletFromFile(
+                  password, IOUtils.SOL_WALLETS_DIRECTORY + File.separator + fileName));
+      wallet.updateBalance();
+      return wallet;
     } catch (Exception e) {
       throw new WalletException("Failed to load Solana wallet file: \"" + fileName + "\"", e);
     }

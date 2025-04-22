@@ -68,7 +68,6 @@ public class SolanaWalletEncryptor {
 
   public static Keypair decryptWalletFromFile(String password, String filePath) throws Exception {
     EncryptedWalletData data;
-    System.out.println(filePath);
     try (FileReader reader = new FileReader(filePath)) {
       data = gson.fromJson(reader, EncryptedWalletData.class);
     }
