@@ -173,7 +173,8 @@ public class EthereumWallet implements Wallet {
     }
   }
 
-  public static EthereumWallet loadFromFile(String fileName, String password) throws WalletException {
+  public static EthereumWallet loadFromFile(String fileName, String password)
+      throws WalletException {
     try {
       EthereumWallet wallet =
           new EthereumWallet(

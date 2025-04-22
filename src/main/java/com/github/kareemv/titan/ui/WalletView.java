@@ -8,7 +8,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.math.BigDecimal;
 import javax.swing.*;
-import javax.swing.table.*;
 
 public class WalletView extends JPanel {
   private JLabel walletTitleLabel;

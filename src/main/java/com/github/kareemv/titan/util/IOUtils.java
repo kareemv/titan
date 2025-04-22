@@ -5,10 +5,10 @@ import com.github.kareemv.titan.wallet.ethereum.EthereumWallet;
 import com.github.kareemv.titan.wallet.exception.IncorrectPasswordException;
 import com.github.kareemv.titan.wallet.solana.SolanaWallet;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.List;
-import java.util.ArrayList;
 
 public class IOUtils {
   public static final File USER_DATA_DIRECTORY =
@@ -71,14 +71,15 @@ public class IOUtils {
 
     } catch (ExecutionException e) {
       Throwable cause = e.getCause();
-      throw new IncorrectPasswordException("Failed to load one or more wallets. Incorrect password?", cause);
+      throw new IncorrectPasswordException(
+          "Failed to load one or more wallets. Incorrect password?", cause);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new IncorrectPasswordException("Wallet loading was interrupted.", e);
     } finally {
-        if (!executor.isTerminated()) {
-            executor.shutdownNow();
-        }
+      if (!executor.isTerminated()) {
+        executor.shutdownNow();
+      }
     }
   }
 
