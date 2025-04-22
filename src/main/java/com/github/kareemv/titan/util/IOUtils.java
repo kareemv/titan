@@ -6,6 +6,9 @@ import com.github.kareemv.titan.wallet.exception.IncorrectPasswordException;
 import com.github.kareemv.titan.wallet.solana.SolanaWallet;
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class IOUtils {
   public static final File USER_DATA_DIRECTORY =
@@ -22,20 +25,17 @@ public class IOUtils {
   }
 
   public static void loadWallets(String password) throws IncorrectPasswordException {
-    Titan.INSTANCE.ethereumWallets.clear();
-    Titan.INSTANCE.solanaWallets.clear();
+    ExecutorService executor = Executors.newCachedThreadPool();
+    List<Future<EthereumWallet>> ethFutures = new ArrayList<>();
+    List<Future<SolanaWallet>> solFutures = new ArrayList<>();
 
     File ethWalletDir = IOUtils.ETH_WALLETS_DIRECTORY;
     if (ethWalletDir.exists() && ethWalletDir.isDirectory()) {
       for (File file : Objects.requireNonNull(ethWalletDir.listFiles())) {
         if (file.isFile() && file.getName().endsWith(".json")) {
-          try {
-            EthereumWallet wallet = EthereumWallet.loadFromFile(file.getName(), password);
-            Titan.INSTANCE.ethereumWallets.add(wallet);
-          } catch (Exception e) {
-            throw new IncorrectPasswordException(
-                "Failed to load Ethereum wallet: " + file.getName() + ". Incorrect password?", e);
-          }
+          final String fileName = file.getName();
+          Callable<EthereumWallet> task = () -> EthereumWallet.loadFromFile(fileName, password);
+          ethFutures.add(executor.submit(task));
         }
       }
     }
@@ -44,15 +44,41 @@ public class IOUtils {
     if (solWalletDir.exists() && solWalletDir.isDirectory()) {
       for (File file : Objects.requireNonNull(solWalletDir.listFiles())) {
         if (file.isFile() && file.getName().endsWith(".json")) {
-          try {
-            SolanaWallet wallet = SolanaWallet.loadFromFile(file.getName(), password);
-            Titan.INSTANCE.solanaWallets.add(wallet);
-          } catch (Exception e) {
-            throw new IncorrectPasswordException(
-                "Failed to load Solana wallet: " + file.getName() + ". Incorrect password?", e);
-          }
+          final String fileName = file.getName();
+          Callable<SolanaWallet> task = () -> SolanaWallet.loadFromFile(fileName, password);
+          solFutures.add(executor.submit(task));
         }
       }
+    }
+
+    executor.shutdown();
+
+    List<EthereumWallet> loadedEthWallets = new ArrayList<>();
+    List<SolanaWallet> loadedSolWallets = new ArrayList<>();
+
+    try {
+      for (Future<EthereumWallet> future : ethFutures) {
+        loadedEthWallets.add(future.get());
+      }
+      for (Future<SolanaWallet> future : solFutures) {
+        loadedSolWallets.add(future.get());
+      }
+
+      Titan.INSTANCE.ethereumWallets.clear();
+      Titan.INSTANCE.solanaWallets.clear();
+      Titan.INSTANCE.ethereumWallets.addAll(loadedEthWallets);
+      Titan.INSTANCE.solanaWallets.addAll(loadedSolWallets);
+
+    } catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      throw new IncorrectPasswordException("Failed to load one or more wallets. Incorrect password?", cause);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IncorrectPasswordException("Wallet loading was interrupted.", e);
+    } finally {
+        if (!executor.isTerminated()) {
+            executor.shutdownNow();
+        }
     }
   }
 
