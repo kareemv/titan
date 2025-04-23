@@ -126,15 +126,6 @@ public class WelcomeDialog extends JDialog implements ActionListener {
   }
 
   private void setupWindowProperties() {
-    try {
-      Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/titan_icon.png"));
-      if (icon != null) {
-        setIconImage(icon);
-      }
-    } catch (Exception e) {
-      System.err.println("Could not load application icon: " + e.getMessage());
-    }
-
     setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
     setPreferredSize(new Dimension(500, 350));
     pack();
