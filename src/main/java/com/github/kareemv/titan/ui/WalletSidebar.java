@@ -25,9 +25,9 @@ public class WalletSidebar extends JPanel {
   private static final Color BORDER_COLOR = new Color(39, 39, 42);
   private final DefaultListModel<Wallet> ethereumWalletListModel = new DefaultListModel<>();
   private final DefaultListModel<Wallet> solanaWalletListModel = new DefaultListModel<>();
+  private final JTabbedPane tabbedPane;
   private JList<Wallet> ethereumList;
   private JList<Wallet> solanaList;
-  private final JTabbedPane tabbedPane;
   private JPopupMenu walletItemPopupMenu;
 
   public WalletSidebar() {
@@ -600,7 +600,14 @@ public class WalletSidebar extends JPanel {
         int index,
         boolean isSelected,
         boolean cellHasFocus) {
-      nameLabel.setText(value.getName());
+      String originalName = value.getName();
+      String displayName;
+      if (originalName.length() > 18) {
+        displayName = originalName.substring(0, 15) + "...";
+      } else {
+        displayName = originalName;
+      }
+      nameLabel.setText(displayName);
       balanceLabel.setText(value.getDisplayBalance() + " " + value.getDisplayBalanceCurrency());
 
       if (isSelected) {
