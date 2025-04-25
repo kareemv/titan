@@ -12,12 +12,12 @@ import javax.swing.*;
 
 public class WelcomeDialog extends JDialog implements ActionListener {
 
+  private final boolean isExistingUser;
   private JPasswordField passwordField;
   private JPasswordField confirmPasswordField;
   private JLabel instructionLabel;
   private JLabel confirmPasswordLabel;
   private JButton actionButton;
-  private boolean isExistingUser;
   private String enteredPassword;
   private boolean successful = false;
 

@@ -22,13 +22,13 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 
 public class WalletSidebar extends JPanel {
-  private DefaultListModel<Wallet> ethereumWalletListModel = new DefaultListModel<>();
-  private DefaultListModel<Wallet> solanaWalletListModel = new DefaultListModel<>();
+  private static final Color BORDER_COLOR = new Color(39, 39, 42);
+  private final DefaultListModel<Wallet> ethereumWalletListModel = new DefaultListModel<>();
+  private final DefaultListModel<Wallet> solanaWalletListModel = new DefaultListModel<>();
   private JList<Wallet> ethereumList;
   private JList<Wallet> solanaList;
-  private JTabbedPane tabbedPane;
+  private final JTabbedPane tabbedPane;
   private JPopupMenu walletItemPopupMenu;
-  private static final Color BORDER_COLOR = new Color(39, 39, 42);
 
   public WalletSidebar() {
     setLayout(new BorderLayout());
@@ -163,7 +163,7 @@ public class WalletSidebar extends JPanel {
             Wallet selectedWallet = ethereumList.getSelectedValue();
             if (selectedWallet != null) {
               solanaList.clearSelection();
-              Titan.INSTANCE.mainWindow.walletView.displayWalletDetails(selectedWallet);
+              MainWindow.walletView.displayWalletDetails(selectedWallet);
             }
           }
         });
@@ -174,7 +174,7 @@ public class WalletSidebar extends JPanel {
             Wallet selectedWallet = solanaList.getSelectedValue();
             if (selectedWallet != null) {
               ethereumList.clearSelection();
-              Titan.INSTANCE.mainWindow.walletView.displayWalletDetails(selectedWallet);
+              MainWindow.walletView.displayWalletDetails(selectedWallet);
             }
           }
         });
@@ -188,7 +188,7 @@ public class WalletSidebar extends JPanel {
       solanaList.setSelectedIndex(0);
       solanaList.requestFocusInWindow();
     } else {
-      Titan.INSTANCE.mainWindow.walletView.displayNoWalletMessage();
+      MainWindow.walletView.displayNoWalletMessage();
     }
   }
 
@@ -265,7 +265,7 @@ public class WalletSidebar extends JPanel {
         if (oldFile.renameTo(newFile)) {
           selectedWallet.setName(newName);
           activeList.repaint();
-          Titan.INSTANCE.mainWindow.walletView.displayWalletDetails(selectedWallet);
+          MainWindow.walletView.displayWalletDetails(selectedWallet);
         } else {
           showErrorDialog("Failed to rename wallet file.");
         }
@@ -582,8 +582,8 @@ public class WalletSidebar extends JPanel {
   }
 
   private class WalletRenderer extends JPanel implements ListCellRenderer<Wallet> {
-    private JLabel nameLabel = new JLabel();
-    private JLabel balanceLabel = new JLabel();
+    private final JLabel nameLabel = new JLabel();
+    private final JLabel balanceLabel = new JLabel();
 
     WalletRenderer() {
       setLayout(new BorderLayout(10, 0));

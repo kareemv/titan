@@ -12,23 +12,62 @@ import com.github.kareemv.titan.wallet.solana.encryption.SolanaWalletEncryptor;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import org.sol4k.Keypair;
 import org.sol4k.PublicKey;
 import org.sol4k.Transaction;
 import org.sol4k.instruction.TransferInstruction;
 
 public class SolanaWallet implements Wallet {
-  private String name;
-  private final String address;
-  private BigInteger balance; // Represented in lamports
-  private final Keypair keypair;
   private static final WalletType walletType = WalletType.SOLANA;
+  private final String address;
+  private final Keypair keypair;
+  private String name;
+  private BigInteger balance; // Represented in lamports
 
   private SolanaWallet(String name, Keypair keypair) {
     this.name = name;
     this.keypair = keypair;
     this.address = keypair.getPublicKey().toString();
     this.balance = BigInteger.ZERO;
+  }
+
+  public static SolanaWallet createNew(String name) throws WalletException {
+    try {
+      Keypair keypair = Keypair.generate();
+      String fileName = IOUtils.SOL_WALLETS_DIRECTORY + File.separator + name + ".json";
+      SolanaWalletEncryptor.encryptWalletToFile(keypair, Titan.INSTANCE.password, fileName);
+      return new SolanaWallet(name, keypair);
+    } catch (Exception e) {
+      throw new WalletException("Failed to create new Ethereum wallet: \"" + name + "\"", e);
+    }
+  }
+
+  public static SolanaWallet createFromPrivateKey(String name, String privateKey) throws Exception {
+    try {
+      Keypair keypair = Keypair.fromSecretKey(privateKey.getBytes());
+      String fileName = IOUtils.SOL_WALLETS_DIRECTORY + File.separator + name + ".json";
+      SolanaWalletEncryptor.encryptWalletToFile(keypair, Titan.INSTANCE.password, fileName);
+      SolanaWallet wallet = new SolanaWallet(name, keypair);
+      wallet.updateBalance();
+      return wallet;
+    } catch (Exception e) {
+      throw new WalletException("Failed to import Solana wallet: \"" + name + "\"", e);
+    }
+  }
+
+  public static SolanaWallet loadFromFile(String fileName, String password) throws WalletException {
+    try {
+      SolanaWallet wallet =
+          new SolanaWallet(
+              fileName.split("\\.")[0],
+              SolanaWalletEncryptor.decryptWalletFromFile(
+                  password, IOUtils.SOL_WALLETS_DIRECTORY + File.separator + fileName));
+      wallet.updateBalance();
+      return wallet;
+    } catch (Exception e) {
+      throw new WalletException("Failed to load Solana wallet file: \"" + fileName + "\"", e);
+    }
   }
 
   @Override
@@ -54,7 +93,7 @@ public class SolanaWallet implements Wallet {
   @Override
   public BigDecimal getDisplayBalance() {
     BigDecimal solBalance = UnitUtils.convertLamportsToSol(this.balance);
-    return solBalance.scale() > 6 ? solBalance.setScale(6, BigDecimal.ROUND_DOWN) : solBalance;
+    return solBalance.scale() > 6 ? solBalance.setScale(6, RoundingMode.DOWN) : solBalance;
   }
 
   @Override
@@ -100,44 +139,6 @@ public class SolanaWallet implements Wallet {
       return Titan.INSTANCE.solanaClient.sendTransaction(transaction);
     } catch (Exception e) {
       throw new TransactionException("Failed to send SOL", e);
-    }
-  }
-
-  public static SolanaWallet createNew(String name) throws WalletException {
-    try {
-      Keypair keypair = Keypair.generate();
-      String fileName = IOUtils.SOL_WALLETS_DIRECTORY + File.separator + name + ".json";
-      SolanaWalletEncryptor.encryptWalletToFile(keypair, Titan.INSTANCE.password, fileName);
-      return new SolanaWallet(name, keypair);
-    } catch (Exception e) {
-      throw new WalletException("Failed to create new Ethereum wallet: \"" + name + "\"", e);
-    }
-  }
-
-  public static SolanaWallet createFromPrivateKey(String name, String privateKey) throws Exception {
-    try {
-      Keypair keypair = Keypair.fromSecretKey(privateKey.getBytes());
-      String fileName = IOUtils.SOL_WALLETS_DIRECTORY + File.separator + name + ".json";
-      SolanaWalletEncryptor.encryptWalletToFile(keypair, Titan.INSTANCE.password, fileName);
-      SolanaWallet wallet = new SolanaWallet(name, keypair);
-      wallet.updateBalance();
-      return wallet;
-    } catch (Exception e) {
-      throw new WalletException("Failed to import Solana wallet: \"" + name + "\"", e);
-    }
-  }
-
-  public static SolanaWallet loadFromFile(String fileName, String password) throws WalletException {
-    try {
-      SolanaWallet wallet =
-          new SolanaWallet(
-              fileName.split("\\.")[0],
-              SolanaWalletEncryptor.decryptWalletFromFile(
-                  password, IOUtils.SOL_WALLETS_DIRECTORY + File.separator + fileName));
-      wallet.updateBalance();
-      return wallet;
-    } catch (Exception e) {
-      throw new WalletException("Failed to load Solana wallet file: \"" + fileName + "\"", e);
     }
   }
 }

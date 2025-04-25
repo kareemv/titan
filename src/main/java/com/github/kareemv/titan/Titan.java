@@ -27,10 +27,10 @@ import org.web3j.protocol.http.HttpService;
 public enum Titan {
   INSTANCE;
 
-  public Web3j ethereumClient = Web3j.build(new HttpService("https://ethereum-rpc.publicnode.com"));
-  public Connection solanaClient = new Connection(RpcUrl.MAINNNET);
   public final OkHttpClient okHttpClient = new OkHttpClient();
   private final ExecutorService executorService = Executors.newCachedThreadPool();
+  public Web3j ethereumClient = Web3j.build(new HttpService("https://ethereum-rpc.publicnode.com"));
+  public Connection solanaClient = new Connection(RpcUrl.MAINNNET);
   public String password; // set after successful decryption or creation
   public List<EthereumWallet> ethereumWallets = new ArrayList<>();
   public List<SolanaWallet> solanaWallets = new ArrayList<>();

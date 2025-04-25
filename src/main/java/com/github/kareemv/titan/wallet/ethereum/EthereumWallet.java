@@ -10,6 +10,7 @@ import com.github.kareemv.titan.wallet.exception.WalletException;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.core.DefaultBlockParameterName;
@@ -18,17 +19,78 @@ import org.web3j.tx.Transfer;
 import org.web3j.utils.Convert;
 
 public class EthereumWallet implements Wallet {
-  private String name;
-  private final String address;
-  private BigDecimal balance; // Represented in ETH
-  private final Credentials credentials;
   private static final WalletType walletType = WalletType.ETHEREUM;
+  private final String address;
+  private final Credentials credentials;
+  private String name;
+  private BigDecimal balance; // Represented in ETH
 
   private EthereumWallet(String name, Credentials credentials) {
     this.name = name;
     this.credentials = credentials;
     this.address = credentials.getAddress();
     this.balance = BigDecimal.ZERO;
+  }
+
+  public static EthereumWallet createNew(String name) throws WalletException {
+    try {
+      String fileName =
+          WalletUtils.generateNewWalletFile(
+              Titan.INSTANCE.password, IOUtils.ETH_WALLETS_DIRECTORY, true);
+      boolean renamed =
+          new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName)
+              .renameTo(new File(IOUtils.ETH_WALLETS_DIRECTORY, name + ".json"));
+      if (!renamed) {
+        new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName).delete();
+        throw new Exception();
+      }
+      return new EthereumWallet(
+          name,
+          WalletUtils.loadCredentials(
+              Titan.INSTANCE.password,
+              IOUtils.ETH_WALLETS_DIRECTORY + File.separator + name + ".json"));
+    } catch (Exception e) {
+      throw new WalletException("Failed to create new Ethereum wallet: \"" + name + "\"", e);
+    }
+  }
+
+  public static EthereumWallet createFromPrivateKey(String name, String privateKey)
+      throws WalletException {
+    try {
+      EthereumWallet w = new EthereumWallet(name, Credentials.create(privateKey));
+      String fileName =
+          WalletUtils.generateWalletFile(
+              Titan.INSTANCE.password,
+              w.credentials.getEcKeyPair(),
+              IOUtils.ETH_WALLETS_DIRECTORY,
+              true);
+      boolean renamed =
+          new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName)
+              .renameTo(new File(IOUtils.ETH_WALLETS_DIRECTORY, name + ".json"));
+      if (!renamed) {
+        new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName).delete();
+        throw new Exception();
+      }
+      w.updateBalance();
+      return w;
+    } catch (Exception e) {
+      throw new WalletException("Failed to import Ethereum wallet: \"" + name + "\"", e);
+    }
+  }
+
+  public static EthereumWallet loadFromFile(String fileName, String password)
+      throws WalletException {
+    try {
+      EthereumWallet wallet =
+          new EthereumWallet(
+              fileName.split("\\.")[0],
+              WalletUtils.loadCredentials(
+                  password, IOUtils.ETH_WALLETS_DIRECTORY + File.separator + fileName));
+      wallet.updateBalance();
+      return wallet;
+    } catch (Exception e) {
+      throw new WalletException("Failed to load Ethereum wallet file: \"" + fileName + "\"", e);
+    }
   }
 
   @Override
@@ -53,9 +115,7 @@ public class EthereumWallet implements Wallet {
 
   @Override
   public BigDecimal getDisplayBalance() {
-    return this.balance.scale() > 6
-        ? this.balance.setScale(6, BigDecimal.ROUND_DOWN)
-        : this.balance;
+    return this.balance.scale() > 6 ? this.balance.setScale(6, RoundingMode.DOWN) : this.balance;
   }
 
   @Override
@@ -124,67 +184,6 @@ public class EthereumWallet implements Wallet {
     } catch (Exception e) {
       e.printStackTrace();
       throw new TransactionException("Failed to send ETH", e);
-    }
-  }
-
-  public static EthereumWallet createNew(String name) throws WalletException {
-    try {
-      String fileName =
-          WalletUtils.generateNewWalletFile(
-              Titan.INSTANCE.password, IOUtils.ETH_WALLETS_DIRECTORY, true);
-      boolean renamed =
-          new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName)
-              .renameTo(new File(IOUtils.ETH_WALLETS_DIRECTORY, name + ".json"));
-      if (!renamed) {
-        new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName).delete();
-        throw new Exception();
-      }
-      return new EthereumWallet(
-          name,
-          WalletUtils.loadCredentials(
-              Titan.INSTANCE.password,
-              IOUtils.ETH_WALLETS_DIRECTORY + File.separator + name + ".json"));
-    } catch (Exception e) {
-      throw new WalletException("Failed to create new Ethereum wallet: \"" + name + "\"", e);
-    }
-  }
-
-  public static EthereumWallet createFromPrivateKey(String name, String privateKey)
-      throws WalletException {
-    try {
-      EthereumWallet w = new EthereumWallet(name, Credentials.create(privateKey));
-      String fileName =
-          WalletUtils.generateWalletFile(
-              Titan.INSTANCE.password,
-              w.credentials.getEcKeyPair(),
-              IOUtils.ETH_WALLETS_DIRECTORY,
-              true);
-      boolean renamed =
-          new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName)
-              .renameTo(new File(IOUtils.ETH_WALLETS_DIRECTORY, name + ".json"));
-      if (!renamed) {
-        new File(IOUtils.ETH_WALLETS_DIRECTORY, fileName).delete();
-        throw new Exception();
-      }
-      w.updateBalance();
-      return w;
-    } catch (Exception e) {
-      throw new WalletException("Failed to import Ethereum wallet: \"" + name + "\"", e);
-    }
-  }
-
-  public static EthereumWallet loadFromFile(String fileName, String password)
-      throws WalletException {
-    try {
-      EthereumWallet wallet =
-          new EthereumWallet(
-              fileName.split("\\.")[0],
-              WalletUtils.loadCredentials(
-                  password, IOUtils.ETH_WALLETS_DIRECTORY + File.separator + fileName));
-      wallet.updateBalance();
-      return wallet;
-    } catch (Exception e) {
-      throw new WalletException("Failed to load Ethereum wallet file: \"" + fileName + "\"", e);
     }
   }
 }
