@@ -77,7 +77,7 @@ public class WalletView extends JPanel {
     JButton sendButton = new JButton("Send");
     sendButton.addActionListener(e -> showSendFundsDialog());
     JButton viewExplorerButton = new JButton("View in Explorer");
-    viewExplorerButton.addActionListener(e -> openInBlockExplorer());
+    viewExplorerButton.addActionListener(e -> openWalletInBlockExplorer());
 
     buttonsPanel.add(viewExplorerButton);
     buttonsPanel.add(receiveButton);
@@ -159,7 +159,7 @@ public class WalletView extends JPanel {
 
   private void showSendFundsDialog() {
     if (currentWallet == null) {
-      JOptionPane.showMessageDialog(this, "No wallet selected", "Error", JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(null, "No wallet selected", "Error", JOptionPane.ERROR_MESSAGE);
       return;
     }
 
@@ -193,7 +193,7 @@ public class WalletView extends JPanel {
 
       if (recipientAddress.isEmpty() || amountText.isEmpty()) {
         JOptionPane.showMessageDialog(
-            this, "Please fill in all fields", "Input Error", JOptionPane.ERROR_MESSAGE);
+            null, "Please fill in all fields", "Input Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
 
@@ -205,7 +205,7 @@ public class WalletView extends JPanel {
         }
       } catch (NumberFormatException e) {
         JOptionPane.showMessageDialog(
-            this, "Please enter a valid amount", "Input Error", JOptionPane.ERROR_MESSAGE);
+            null, "Please enter a valid amount", "Input Error", JOptionPane.ERROR_MESSAGE);
         return;
       }
 
@@ -235,7 +235,7 @@ public class WalletView extends JPanel {
 
     int result =
         JOptionPane.showOptionDialog(
-            this,
+            null,
             panel,
             "Confirm Transaction",
             JOptionPane.DEFAULT_OPTION,
@@ -278,11 +278,15 @@ public class WalletView extends JPanel {
         hashPanel.add(copyButton, BorderLayout.EAST);
         successPanel.add(hashPanel, BorderLayout.CENTER);
 
+        JButton viewExplorerButton = new JButton("View in Explorer");
+        viewExplorerButton.addActionListener(e -> openTransactionInExplorer(txHash));
+        successPanel.add(viewExplorerButton, BorderLayout.SOUTH);
+
         JOptionPane.showMessageDialog(
-            this, successPanel, "Transaction Sent", JOptionPane.INFORMATION_MESSAGE);
+            null, successPanel, "Transaction Sent", JOptionPane.INFORMATION_MESSAGE);
       } catch (TransactionException e) {
         JOptionPane.showMessageDialog(
-            this,
+            null,
             "Failed to send transaction: " + e.getMessage(),
             "Transaction Error",
             JOptionPane.ERROR_MESSAGE);
@@ -301,7 +305,7 @@ public class WalletView extends JPanel {
     }
   }
 
-  private void openInBlockExplorer() {
+  private void openWalletInBlockExplorer() {
     String explorerUrl = null;
     if (currentWallet.getWalletType() == WalletType.ETHEREUM) {
       explorerUrl = "https://etherscan.io/address/" + currentWallet.getAddress();
@@ -313,7 +317,27 @@ public class WalletView extends JPanel {
       Desktop.getDesktop().browse(new java.net.URI(explorerUrl));
     } catch (Exception e) {
       JOptionPane.showMessageDialog(
-          this, "Failed to open browser: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+          null, "Failed to open browser: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  private void openTransactionInExplorer(String txHash) {
+    if (currentWallet == null) return;
+
+    String explorerUrl = null;
+    try {
+      if (currentWallet.getWalletType() == WalletType.ETHEREUM) {
+        explorerUrl = "https://etherscan.io/tx/" + txHash;
+      } else if (currentWallet.getWalletType() == WalletType.SOLANA) {
+        explorerUrl = "https://solscan.io/tx/" + txHash;
+      }
+
+    } catch (Exception e) {
+      JOptionPane.showMessageDialog(
+          null,
+          "Failed to open browser: " + e.getMessage(),
+          "Error",
+          JOptionPane.ERROR_MESSAGE);
     }
   }
 }

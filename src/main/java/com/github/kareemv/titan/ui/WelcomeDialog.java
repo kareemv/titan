@@ -151,7 +151,7 @@ public class WelcomeDialog extends JDialog implements ActionListener {
 
     if (enteredPassword.isEmpty()) {
       JOptionPane.showMessageDialog(
-          this, "Password cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
+          null, "Password cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
       passwordField.requestFocusInWindow();
       return;
     }
@@ -163,12 +163,12 @@ public class WelcomeDialog extends JDialog implements ActionListener {
         dispose();
       } catch (IncorrectPasswordException ex) {
         JOptionPane.showMessageDialog(
-            this, "Incorrect password. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            null, "Incorrect password. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
         passwordField.setText("");
         passwordField.requestFocusInWindow();
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(
-            this,
+            null,
             "An error occurred loading wallets: " + ex.getMessage(),
             "Error",
             JOptionPane.ERROR_MESSAGE);
@@ -183,7 +183,7 @@ public class WelcomeDialog extends JDialog implements ActionListener {
 
       if (!enteredPassword.equals(confirmPassword)) {
         JOptionPane.showMessageDialog(
-            this, "Passwords do not match. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
+            null, "Passwords do not match. Please try again.", "Error", JOptionPane.ERROR_MESSAGE);
         passwordField.setText("");
         confirmPasswordField.setText("");
         passwordField.requestFocusInWindow();
