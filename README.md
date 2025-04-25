@@ -38,6 +38,20 @@ A multichain cryptocurrency wallet and asset management desktop application writ
 
 Titan uses the excellent FlatLaf library for its base Look and Feel. On top of this, a custom theme named "GeistLaf" is implemented, visually inspired by Vercel's [Geist Design System](https://vercel.com/geist/introduction).
 
+## Installation
+
+The easiest way to run Titan is to download the latest executable `.jar` file from the [**Releases**](https://github.com/kareemv/titan/releases) section of this repository.
+
+Once downloaded, you can typically run it by double-clicking the file (if your system has Java configured correctly) or by using the command line:
+
+```bash
+java -jar Titan-VERSION.jar
+```
+
+(Replace `Titan-VERSION.jar` with the actual downloaded filename).
+
+If you prefer to build the project yourself, please refer to the [Building](#building) section below.
+
 ## Building
 
 This project uses Apache Maven. To build the project and create an executable JAR:
@@ -56,13 +70,15 @@ This project uses Apache Maven. To build the project and create an executable JA
     mvn clean package
     ```
 
-    This will compile the code, run tests, and create a JAR file (e.g., `target/titan-1.0-SNAPSHOT-jar-with-dependencies.jar`) which includes all necessary dependencies.
+    This will compile the code, run tests, and create a JAR file which includes all necessary dependencies.
 
 4.  **Run the application:**
+
     ```bash
-    java -jar target/titan-1.0-SNAPSHOT-jar-with-dependencies.jar
+    java -jar target/Titan-VERSION.jar
     ```
-    _(Replace the JAR filename if your version differs)_
+
+    (Replace `Titan-VERSION.jar` with the actual filename).
 
 ## License
 
