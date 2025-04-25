@@ -178,8 +178,6 @@ public class EthereumWallet implements Wallet {
                   maxFeePerGas)
               .send();
 
-      System.out.println(transactionReceipt.getTransactionHash());
-
       return transactionReceipt.getTransactionHash();
     } catch (Exception e) {
       e.printStackTrace();

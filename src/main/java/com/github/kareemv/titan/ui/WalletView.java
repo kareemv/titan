@@ -247,7 +247,6 @@ public class WalletView extends JPanel {
     if (result == 0) {
       try {
         String txHash = currentWallet.sendFundsTo(recipientAddress, amount);
-        System.out.println(txHash);
 
         JPanel successPanel = new JPanel(new BorderLayout(0, 10));
 
@@ -334,10 +333,7 @@ public class WalletView extends JPanel {
 
     } catch (Exception e) {
       JOptionPane.showMessageDialog(
-          null,
-          "Failed to open browser: " + e.getMessage(),
-          "Error",
-          JOptionPane.ERROR_MESSAGE);
+          null, "Failed to open browser: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
   }
 }
