@@ -60,6 +60,10 @@ public class WalletView extends JPanel {
     usdValueLabel.setText(String.format("$%.2f", wallet.getDisplayBalanceUSD()));
   }
 
+  public Wallet getCurrentWallet() {
+    return currentWallet;
+  }
+
   private JPanel createTopPanel() {
     JPanel panel = new JPanel(new BorderLayout());
     panel.setBackground(Color.decode("#000000"));
