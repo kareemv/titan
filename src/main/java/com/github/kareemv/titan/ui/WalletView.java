@@ -334,7 +334,7 @@ public class WalletView extends JPanel {
       } else if (currentWallet.getWalletType() == WalletType.SOLANA) {
         explorerUrl = "https://solscan.io/tx/" + txHash;
       }
-
+      Desktop.getDesktop().browse(new java.net.URI(explorerUrl));
     } catch (Exception e) {
       JOptionPane.showMessageDialog(
           null, "Failed to open browser: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
