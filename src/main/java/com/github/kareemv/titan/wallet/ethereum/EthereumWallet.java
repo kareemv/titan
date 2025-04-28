@@ -153,7 +153,6 @@ public class EthereumWallet implements Wallet {
 
   private String sendEthTo(String recipientAddress, BigDecimal amount) throws TransactionException {
     try {
-      long chainId = Titan.INSTANCE.ethereumClient.ethChainId().send().getChainId().longValue();
       BigInteger baseFeePerGas =
           Titan.INSTANCE
               .ethereumClient
